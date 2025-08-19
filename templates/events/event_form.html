@@ -1,0 +1,356 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+  <h2><i class="fa-solid {% if edit %}fa-edit text-warning{% else %}fa-calendar-plus text-success{% endif %} me-2"></i>{% if edit %}Edytuj{% else %}Dodaj{% endif %} wydarzenie</h2>
+  <form method="post" action="{{ request.path }}">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    <div class="mb-3">
+      {{ form.date.label_tag|default:'Data:' }}
+      <div class="input-group">
+        <span class="input-group-text"><i class="bi bi-calendar-date"></i></span>
+        {% if form.instance and form.instance.date %}
+          <input type="date" name="date" class="form-control" value="{{ form.instance.date|date:'Y-m-d' }}" id="id_date" required>
+        {% else %}
+          {{ form.date }}
+        {% endif %}
+      </div>
+      <div class="form-text">Wybierz datę wydarzenia</div>
+      {{ form.date.errors }}
+    </div>
+    <div class="mb-3">
+      {{ form.category.label_tag|default:'Kategoria:' }}
+      <div class="input-group">
+        <span class="input-group-text"><i class="bi bi-tag"></i></span>
+        {{ form.category }}
+      </div>
+      <div class="form-text">Wybierz kategorię wydarzenia</div>
+      {{ form.category.errors }}
+    </div>
+    <div class="mb-3">
+      {{ form.icon.label_tag|default:'Ikona wydarzenia:' }}
+      <div class="mb-2">
+        <div class="d-flex align-items-center gap-2">
+          <div id="selected-icon-display" class="d-flex align-items-center gap-2 p-2 border rounded" style="min-width: 120px;">
+            <i id="selected-icon-preview" class="fa-solid fa-calendar-check fa-lg text-primary"></i>
+            <span id="selected-icon-text" class="text-muted">Kalendarz (domyślna)</span>
+          </div>
+          <button type="button" class="btn btn-outline-primary" onclick="openIconPickerModal()">
+            <i class="fa-solid fa-palette me-1"></i>Wybierz ikonę
+          </button>
+        </div>
+      </div>
+      {{ form.icon.as_hidden }}
+      <div class="form-text">Wybierz ikonę, która najlepiej pasuje do wydarzenia</div>
+      {{ form.icon.errors }}
+    </div>
+    <div class="mb-3" id="custom-category-group" style="display:none;">
+      {{ form.custom_category.label_tag|default:'Własna kategoria:' }}
+      {{ form.custom_category }}
+      <div class="form-text">Wpisz własną kategorię, jeśli wybrałeś "Wpisz własną kategorię"</div>
+      {{ form.custom_category.errors }}
+    </div>
+    <div class="mb-3">
+      {{ form.description.label_tag|default:'Opis:' }}
+      {{ form.description }}
+      <div class="form-text">
+        Opisz wydarzenie (max 200 znaków). <span id="desc-count"></span>
+      </div>
+      {{ form.description.errors }}
+    </div>
+    <div class="mb-3 form-check">
+      {{ form.is_recurring }} {{ form.is_recurring.label_tag|default:'Wydarzenie cykliczne:' }}
+    </div>
+    <div id="recurrence-fields" style="display:none;">
+      <div class="mb-3">
+        {{ form.recurrence_type.label_tag|default:'Typ powtarzalności:' }}
+        {{ form.recurrence_type }}
+        <div class="form-text">Wybierz typ powtarzalności</div>
+        {{ form.recurrence_type.errors }}
+      </div>
+      <div class="mb-3">
+        {{ form.recurrence_end.label_tag|default:'Data końca powtarzania:' }}
+        {{ form.recurrence_end }}
+        <div class="form-text">Data końca powtarzania (opcjonalnie)</div>
+        {{ form.recurrence_end.errors }}
+      </div>
+    </div>
+    <button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> Zapisz</button>
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="bi bi-x-circle"></i> Anuluj</button>
+  </form>
+</div>
+
+
+<script>
+function toggleRecurrenceFields() {
+  const isRecurring = document.getElementById('id_is_recurring');
+  const recurrenceFields = document.getElementById('recurrence-fields');
+  if (isRecurring && recurrenceFields) {
+    if (isRecurring.checked) {
+      recurrenceFields.style.display = '';
+    } else {
+      recurrenceFields.style.display = 'none';
+      document.getElementById('id_recurrence_type').value = 'none';
+      document.getElementById('id_recurrence_end').value = '';
+    }
+  }
+}
+function initEventFormJS() {
+  // ...istniejący kod...
+  // Recurrence
+  const isRecurring = document.getElementById('id_is_recurring');
+  if (isRecurring) {
+    isRecurring.addEventListener('change', toggleRecurrenceFields);
+    toggleRecurrenceFields();
+  }
+  // ...reszta kodu...
+}
+
+// Ikona picker - nowy system z modalem
+let selectedIconValue = 'fa-calendar-check';
+let selectedIconLabel = 'Kalendarz (domyślna)';
+
+document.addEventListener('DOMContentLoaded', function() {
+  const iconInput = document.getElementById('id_icon');
+  
+  // Ustaw domyślną ikonę na start
+  if (iconInput.value) {
+    selectedIconValue = iconInput.value;
+    // Znajdź odpowiedni label dla ikony
+    const iconChoices = [
+      ["fa-calendar-check", "Kalendarz (domyślna)"],
+      ["fa-cake-candles", "Tort urodzinowy"],
+      ["fa-briefcase", "Praca"],
+      ["fa-heart", "Serce"],
+      ["fa-plane", "Podróż"],
+      ["fa-graduation-cap", "Edukacja"],
+      ["fa-stethoscope", "Zdrowie"],
+      ["fa-gift", "Prezent"],
+      ["fa-music", "Muzyka"],
+      ["fa-star", "Gwiazdka"],
+      ["fa-home", "Dom"],
+      ["fa-car", "Samochód"],
+      ["fa-utensils", "Jedzenie"],
+      ["fa-coffee", "Kawa"],
+      ["fa-beer", "Piwo"],
+      ["fa-wine-glass", "Wino"],
+      ["fa-dumbbell", "Sport"],
+      ["fa-running", "Bieganie"],
+      ["fa-bicycle", "Rower"],
+      ["fa-swimming-pool", "Basen"],
+      ["fa-gamepad", "Gry"],
+      ["fa-tv", "Telewizja"],
+      ["fa-book", "Książka"],
+      ["fa-newspaper", "Gazeta"],
+      ["fa-laptop", "Komputer"],
+      ["fa-mobile-alt", "Telefon"],
+      ["fa-camera", "Aparat"],
+      ["fa-palette", "Sztuka"],
+      ["fa-paint-brush", "Malowanie"],
+      ["fa-guitar", "Gitara"],
+      ["fa-microphone", "Śpiew"],
+      ["fa-theater-masks", "Teatr"],
+      ["fa-film", "Film"],
+      ["fa-ticket-alt", "Bilet"],
+      ["fa-shopping-cart", "Zakupy"],
+      ["fa-credit-card", "Płatność"],
+      ["fa-bank", "Bank"],
+      ["fa-chart-line", "Finanse"],
+      ["fa-handshake", "Spotkanie"],
+      ["fa-users", "Ludzie"],
+      ["fa-user-friends", "Przyjaciele"],
+      ["fa-baby", "Dziecko"],
+      ["fa-dog", "Pies"],
+      ["fa-cat", "Kot"],
+      ["fa-leaf", "Natura"],
+      ["fa-tree", "Drzewo"],
+      ["fa-sun", "Słońce"],
+      ["fa-moon", "Księżyc"],
+      ["fa-cloud", "Pogoda"],
+      ["fa-umbrella", "Deszcz"],
+      ["fa-snowflake", "Śnieg"],
+      ["fa-fire", "Ogień"],
+      ["fa-lightbulb", "Pomysł"],
+      ["fa-tools", "Narzędzia"],
+      ["fa-wrench", "Naprawa"],
+      ["fa-hammer", "Remont"],
+      ["fa-paint-roller", "Malowanie"],
+      ["fa-broom", "Sprzątanie"],
+      ["fa-bath", "Kąpiel"],
+      ["fa-bed", "Sen"],
+      ["fa-clock", "Czas"],
+      ["fa-stopwatch", "Stoper"],
+      ["fa-hourglass", "Klepsydra"],
+      ["fa-calendar-plus", "Dodaj"],
+      ["fa-calendar-minus", "Usuń"],
+      ["fa-calendar-times", "Anuluj"],
+      ["fa-calendar-day", "Dzień"],
+      ["fa-calendar-week", "Tydzień"],
+      ["fa-calendar-alt", "Kalendarz"],
+      ["fa-bell", "Dzwonek"],
+      ["fa-bell-slash", "Wycisz"],
+      ["fa-exclamation", "Ważne"],
+      ["fa-question", "Pytanie"],
+      ["fa-info-circle", "Informacja"],
+      ["fa-check-circle", "Sukces"],
+      ["fa-times-circle", "Błąd"],
+      ["fa-exclamation-triangle", "Ostrzeżenie"],
+      ["fa-thumbs-up", "Lubię"],
+      ["fa-thumbs-down", "Nie lubię"],
+      ["fa-smile", "Uśmiech"],
+      ["fa-frown", "Smutek"],
+      ["fa-meh", "Neutralny"],
+      ["fa-laugh", "Śmiech"],
+      ["fa-angry", "Złość"],
+      ["fa-surprise", "Zaskoczenie"],
+      ["fa-tired", "Zmęczenie"],
+      ["fa-dizzy", "Zawroty"],
+      ["fa-kiss", "Pocałunek"],
+      ["fa-kiss-wink-heart", "Pocałunek z sercem"],
+      ["fa-grin", "Grin"],
+      ["fa-grin-stars", "Grin z gwiazdkami"],
+      ["fa-grin-hearts", "Grin z sercami"],
+      ["fa-grin-tears", "Grin ze łzami"],
+      ["fa-grin-tongue", "Grin z językiem"],
+      ["fa-grin-tongue-wink", "Grin z językiem i mrugnięciem"],
+      ["fa-grin-tongue-squint", "Grin z językiem i przymrużeniem"],
+      ["fa-grin-squint", "Grin z przymrużeniem"],
+      ["fa-grin-squint-tears", "Grin z przymrużeniem i łzami"],
+      ["fa-grin-beam", "Grin z promieniami"],
+      ["fa-grin-beam-sweat", "Grin z promieniami i potem"],
+      ["fa-grin-wink", "Grin z mrugnięciem"],
+    ];
+    
+    const foundChoice = iconChoices.find(choice => choice[0] === iconInput.value);
+    if (foundChoice) {
+      selectedIconLabel = foundChoice[1];
+    }
+  }
+  
+  updateIconDisplay();
+});
+
+function openIconPickerModal() {
+  console.log('Otwieranie modala ikon...'); // Debug
+  const modalElement = document.getElementById('iconPickerModal');
+  if (!modalElement) {
+    console.error('Nie znaleziono elementu modala!');
+    return;
+  }
+  
+  const modal = new bootstrap.Modal(modalElement);
+  
+  // Zaznacz aktualnie wybraną ikonę
+  const iconBtns = document.querySelectorAll('#iconPickerModal .icon-btn');
+  iconBtns.forEach(btn => {
+    btn.classList.remove('active');
+    if (btn.dataset.value === selectedIconValue) {
+      btn.classList.add('active');
+    }
+  });
+  
+  // Dodaj event listenery do przycisków ikon
+  iconBtns.forEach(btn => {
+    btn.onclick = function() {
+      // Usuń aktywną klasę ze wszystkich przycisków
+      iconBtns.forEach(b => b.classList.remove('active'));
+      // Dodaj aktywną klasę do klikniętego przycisku
+      this.classList.add('active');
+      
+      // Zaktualizuj wybrane wartości
+      selectedIconValue = this.dataset.value;
+      selectedIconLabel = this.dataset.label;
+      console.log('Wybrano ikonę:', selectedIconValue, selectedIconLabel); // Debug
+    };
+  });
+  
+  modal.show();
+}
+
+function confirmIconSelection() {
+  console.log('Potwierdzanie wyboru ikony:', selectedIconValue); // Debug
+  
+  // Zaktualizuj ukryte pole formularza
+  const iconInput = document.getElementById('id_icon');
+  iconInput.value = selectedIconValue;
+  
+  // Zaktualizuj wyświetlanie
+  updateIconDisplay();
+  
+  // Zamknij modal
+  const modalElement = document.getElementById('iconPickerModal');
+  const modal = bootstrap.Modal.getInstance(modalElement);
+  if (modal) {
+    modal.hide();
+  } else {
+    console.error('Nie można znaleźć instancji modala!');
+  }
+}
+
+function updateIconDisplay() {
+  const iconPreview = document.getElementById('selected-icon-preview');
+  const iconText = document.getElementById('selected-icon-text');
+  
+  if (iconPreview && iconText) {
+    iconPreview.className = `fa-solid ${selectedIconValue} fa-lg text-primary`;
+    iconText.textContent = selectedIconLabel;
+  }
+}
+</script>
+<style>
+.btn {
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+.btn:hover {
+  box-shadow: 0 2px 8px rgba(33,150,243,0.13);
+  transform: scale(1.05);
+}
+.icon-btn.active, .icon-btn:focus {
+  border-color: #1976d2 !important;
+  background: #e3f2fd !important;
+}
+
+.icon-category {
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  padding: 12px;
+  background: #f8f9fa;
+}
+
+.icon-category:hover {
+  background: #e9ecef;
+  border-color: #dee2e6;
+}
+
+.icon-btn {
+  min-width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+}
+
+.icon-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+#selected-icon-display {
+  background: #f8f9fa;
+  border: 2px solid #dee2e6 !important;
+  transition: border-color 0.2s ease;
+}
+
+#selected-icon-display:hover {
+  border-color: #1976d2 !important;
+}
+</style>
+<!-- Select2 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<!-- Select2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<!-- jQuery (wymagane przez Select2) -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+{% endblock %} 

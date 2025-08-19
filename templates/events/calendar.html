@@ -1,0 +1,860 @@
+{% extends 'base.html' %}
+{% load get_item %}
+{% block content %}
+<style>
+  .calendar-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 16px;
+  }
+  .calendar-table {
+    width: 100%;
+    min-width: 900px;
+    font-size: 1.1rem;
+    background: #fff;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 2px 16px rgba(33,150,243,0.07);
+  }
+  .calendar-table th {
+    background: #e3f2fd;
+    font-weight: 600;
+    font-size: 1.15rem;
+    padding: 16px 0 12px 0;
+    border-bottom: 2px solid #1976d2;
+  }
+  .calendar-day {
+    background: #fff;
+    border: 1px solid #dee2e6;
+    overflow: hidden;
+    position: relative;
+    padding: 0;
+    height: 120px;
+    width: 13.5vw;
+    min-width: 120px;
+    max-width: 180px;
+    box-sizing: border-box;
+  }
+  .calendar-content {
+    transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+    background: inherit;
+    height: 100%;
+    width: 100%;
+    padding: 8px 4px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+  }
+  .calendar-day:hover .calendar-content {
+    background: #e3f2fd;
+    transform: scale(1.07);
+    box-shadow: 0 4px 16px rgba(33,150,243,0.10);
+    cursor: pointer;
+    z-index: 1;
+  }
+  .calendar-today .calendar-content {
+    background: #bbdefb !important;
+    border: 2.5px solid #1976d2 !important;
+    transform: scale(1.07);
+    box-shadow: 0 4px 16px rgba(33,150,243,0.18);
+    cursor: pointer;
+    z-index: 1;
+  }
+  .calendar-nav {
+    font-size: 2rem;
+    color: #1976d2;
+    text-decoration: none;
+    padding: 0 20px;
+    transition: color 0.2s, transform 0.2s;
+  }
+  .calendar-nav:hover {
+    color: #0d47a1;
+    text-decoration: none;
+    transform: scale(1.15);
+  }
+  .btn, .calendar-nav {
+    transition: box-shadow 0.2s, transform 0.2s;
+  }
+  .btn:hover, .calendar-nav:hover {
+    box-shadow: 0 2px 8px rgba(33,150,243,0.13);
+    transform: scale(1.05);
+  }
+  .event-icons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px;
+    justify-content: center;
+    margin-top: 4px;
+  }
+  .event-icon {
+    font-size: 1.2rem;
+    color: #1976d2;
+    padding: 2px;
+    border-radius: 4px;
+    background: rgba(25, 118, 210, 0.1);
+  }
+  .event-icon:hover {
+    background: rgba(25, 118, 210, 0.2);
+    transform: scale(1.1);
+  }
+  .event-count {
+    font-size: 0.8rem;
+    color: #666;
+    margin-top: 2px;
+  }
+  @media (max-width: 1200px) {
+    .calendar-container { max-width: 1000px; }
+    .calendar-table { min-width: 700px; }
+  }
+  @media (max-width: 900px) {
+    .calendar-container { max-width: 100vw; padding: 0 2px; }
+    .calendar-table { min-width: 700px; font-size: 0.95rem; }
+    .calendar-day { height: 80px; min-width: 90px; max-width: 120px; }
+    .table-responsive { overflow-x: auto; }
+  }
+  @media (max-width: 600px) {
+    .calendar-table { min-width: 500px; font-size: 0.85rem; }
+    .calendar-day { height: 60px; min-width: 70px; max-width: 90px; }
+  }
+
+
+  .event-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+    padding: 8px;
+    border-radius: 6px;
+    background: #f8f9fa;
+  }
+  .event-item:last-child {
+    margin-bottom: 0;
+  }
+  .event-item-icon {
+    font-size: 1.2rem;
+    color: #1976d2;
+    margin-right: 10px;
+    min-width: 20px;
+  }
+  .event-item-details {
+    flex: 1;
+  }
+  .event-item-title {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 2px;
+  }
+  .event-item-description {
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 2px;
+  }
+  .event-item-date {
+    font-size: 0.8rem;
+    color: #999;
+  }
+  .event-item-recurring {
+    font-size: 0.8rem;
+    color: #ff9800;
+    margin-left: 5px;
+  }
+  .event-item-actions {
+    display: flex;
+    gap: 4px;
+  }
+  .event-item-actions .btn {
+    font-size: 0.75rem;
+    padding: 2px 6px;
+  }
+
+</style>
+<div class="calendar-container mt-4">
+  <h2>Kalendarz</h2>
+  <div class="d-flex align-items-center justify-content-center mb-3">
+    <a href="?month={{ prev_month }}&year={{ prev_year }}" class="calendar-nav" title="Poprzedni miesiąc"><i class="bi bi-chevron-left"></i></a>
+    <h4 class="mb-0 mx-3">{{ month_name }} {{ year }}</h4>
+    <a href="?month={{ next_month }}&year={{ next_year }}" class="calendar-nav" title="Następny miesiąc"><i class="bi bi-chevron-right"></i></a>
+  </div>
+  <div class="table-responsive">
+    <table class="calendar-table table table-bordered text-center align-middle">
+      <thead>
+        <tr>
+          <th>Pon</th>
+          <th>Wt</th>
+          <th>Śr</th>
+          <th>Czw</th>
+          <th>Pt</th>
+          <th>Sob</th>
+          <th>Nd</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for week in weeks %}
+        <tr>
+          {% for day in week %}
+            {% if day %}
+              {% with events=events_by_day|get_item:day day_str=day|date:'Y-m-d' %}
+              <td class="calendar-day{% if day == today %} calendar-today{% endif %}" 
+                  style="word-break:break-word; cursor:pointer; overflow:hidden; position:relative; padding:0; width:13.5vw; min-width:120px; max-width:180px; box-sizing:border-box;" 
+                  onclick="handleDayClick(event, '{{ day_str }}', {{ events|length|yesno:'true,false' }})">
+                <div class="calendar-content">
+                  <div class="fw-bold">{{ day.day }}</div>
+                  {% if events %}
+                    <div class="event-icons">
+                      {% for event in events %}
+                        <i class="fa-solid {% if event.icon %}{{ event.icon }}{% else %}fa-calendar-check{% endif %} event-icon" title="{{ event.get_category_display }}{% if event.category == 'inne' %} ({{ event.custom_category }}){% endif %}"></i>
+                      {% endfor %}
+                    </div>
+                    {% if events|length > 1 %}
+                      <div class="event-count">{{ events|length }} wydarzeń</div>
+                    {% endif %}
+                  {% endif %}
+                </div>
+              </td>
+              {% endwith %}
+            {% else %}
+              <td class="bg-light"></td>
+            {% endif %}
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="d-flex gap-2 mt-2">
+    <a href="{% url 'add_event' %}" class="btn btn-success"><i class="bi bi-plus-circle"></i> Dodaj wydarzenie</a>
+    {% if year != today.year or month != today.month %}
+      <a href="/" class="btn btn-outline-primary"><i class="bi bi-calendar-event"></i> Wróć do aktualnej daty</a>
+    {% endif %}
+    <button type="button" class="btn btn-danger ms-auto" data-bs-toggle="modal" data-bs-target="#clearCalendarModal"><i class="bi bi-trash"></i> Wyczyść kalendarz</button>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.js"></script>
+<script>
+function initEventFormJS() {
+  // Licznik znaków opisu
+  const desc = document.getElementById('id_description');
+  const descCount = document.getElementById('desc-count');
+  if(desc && descCount) {
+    function updateCount() {
+      descCount.textContent = desc.value.length + '/200';
+    }
+    desc.addEventListener('input', updateCount);
+    updateCount();
+  }
+  // Pokazuj/ukrywaj pole własnej kategorii
+  const cat = document.getElementById('id_category');
+  const customCatGroup = document.getElementById('custom-category-group');
+  function toggleCustomCat() {
+    if(cat && customCatGroup) {
+      if(cat.value === 'inne') {
+        customCatGroup.style.display = '';
+      } else {
+        customCatGroup.style.display = 'none';
+        const customCatInput = document.getElementById('id_custom_category');
+        if(customCatInput) customCatInput.value = '';
+      }
+    }
+  }
+  if(cat) {
+    cat.addEventListener('change', toggleCustomCat);
+    toggleCustomCat();
+  }
+
+}
+document.addEventListener('DOMContentLoaded', initEventFormJS);
+
+// Funkcja pomocnicza do pobierania CSRF tokena z ciasteczka
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.substring(0, name.length + 1) === (name + '=')) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
+}
+
+// Funkcja do otwierania modala i ładowania formularza przez AJAX
+function openAddEventModal(dateStr) {
+  const modal = new bootstrap.Modal(document.getElementById('addEventModal'));
+  const modalBody = document.getElementById('addEventModalBody');
+  const modalTitle = document.getElementById('addEventModalLabel');
+  
+  modalTitle.textContent = 'Dodaj wydarzenie';
+  modalBody.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-primary"></div></div>';
+  
+  fetch(`/add/${dateStr}/?ajax=1`)
+    .then(response => response.text())
+    .then(html => {
+      modalBody.innerHTML = html;
+      if (typeof initEventFormJS === 'function') { initEventFormJS(); }
+      // Obsługa wysyłki formularza przez AJAX
+      const form = modalBody.querySelector('form');
+      if (form) {
+        form.onsubmit = function(e) {
+          e.preventDefault();
+          const formData = new FormData(form);
+          fetch(form.action + '?ajax=1', {
+            method: 'POST',
+            body: formData,
+            headers: {
+              'X-Requested-With': 'XMLHttpRequest',
+              'X-CSRFToken': getCookie('csrftoken')
+            },
+            credentials: 'same-origin'
+          })
+          .then(resp => resp.json())
+          .then(data => {
+            if (data.success) {
+              modal.hide();
+              location.reload(); // Odśwież kalendarz po sukcesie
+            } else if (data.form_html) {
+              modalBody.innerHTML = data.form_html;
+              if (typeof initEventFormJS === 'function') { initEventFormJS(); }
+            }
+          });
+        };
+      }
+    });
+
+  modal.show();
+}
+
+// Przechwytujemy kliknięcie w dzień
+function handleDayClick(event, day, hasEvents) {
+  event.stopPropagation();
+  if (!hasEvents) {
+    // Jeśli nie ma wydarzeń, otwórz formularz dodawania
+    openAddEventModal(day);
+  } else {
+    // Jeśli są wydarzenia, otwórz modal z listą wydarzeń
+    showEventsModal(event, true, day);
+  }
+}
+
+// Funkcja do wyświetlania modala z wydarzeniami
+function showEventsModal(event, eventCount, dayStr) {
+  
+  // Pobierz dane wydarzeń dla tego dnia
+  fetch(`/api/events/${dayStr}/`)
+    .then(response => response.json())
+    .then(data => {
+      if (data.events && data.events.length > 0) {
+        let modalContent = `
+          <div class="modal-header">
+            <h5 class="modal-title">Wydarzenia z dnia ${data.date}</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Zamknij"></button>
+          </div>
+          <div class="modal-body">
+        `;
+        
+        data.events.forEach(event => {
+          const category = event.category === 'inne' ? event.custom_category : event.category_display;
+          const recurringIcon = event.is_recurring && event.recurrence_type !== 'none' ? '<span class="event-item-recurring">🔁</span>' : '';
+          
+          modalContent += `
+            <div class="event-item">
+              <i class="fa-solid ${event.icon || 'fa-calendar-check'} event-item-icon"></i>
+              <div class="event-item-details">
+                <div class="event-item-title">${category}${recurringIcon}</div>
+                <div class="event-item-description">${event.description}</div>
+                <div class="event-item-date">${event.date}</div>
+                <div class="event-item-actions mt-2">
+                  <button class="btn btn-sm btn-outline-primary me-1" onclick="editEvent(${event.id})">
+                    <i class="bi bi-pencil"></i> Edytuj
+                  </button>
+                  <button class="btn btn-sm btn-outline-danger" onclick="deleteEvent(${event.id})">
+                    <i class="bi bi-trash"></i> Usuń
+                  </button>
+                </div>
+              </div>
+            </div>
+          `;
+        });
+        
+        modalContent += `
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Zamknij</button>
+            <button type="button" class="btn btn-success" onclick="openAddEventModal('${dayStr}')">
+              <i class="bi bi-plus-circle"></i> Dodaj nowe wydarzenie
+            </button>
+          </div>
+        `;
+        
+        const eventsModal = document.getElementById('eventsModal');
+        const modalBody = eventsModal.querySelector('.modal-content');
+        modalBody.innerHTML = modalContent;
+        
+        const modal = new bootstrap.Modal(eventsModal);
+        modal.show();
+        
+        // Dodaj obsługę zamykania modala
+        eventsModal.addEventListener('hidden.bs.modal', function() {
+          // Po zamknięciu modala z wydarzeniami, umożliw ponowne otwarcie
+          eventsModal.removeEventListener('hidden.bs.modal', arguments.callee);
+        });
+      }
+    })
+    .catch(error => {
+      console.error('Błąd podczas pobierania wydarzeń:', error);
+    });
+}
+
+// Funkcja do edycji wydarzenia
+function editEvent(eventId) {
+  const modal = new bootstrap.Modal(document.getElementById('addEventModal'));
+  const modalBody = document.getElementById('addEventModalBody');
+  const modalTitle = document.getElementById('addEventModalLabel');
+  
+  modalTitle.textContent = 'Edytuj wydarzenie';
+  modalBody.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-primary"></div></div>';
+  
+  fetch(`/edit/${eventId}/?ajax=1`)
+    .then(response => response.text())
+    .then(html => {
+      modalBody.innerHTML = html;
+      if (typeof initEventFormJS === 'function') { initEventFormJS(); }
+      
+      // Obsługa wysyłki formularza przez AJAX
+      const form = modalBody.querySelector('form');
+      if (form) {
+        form.onsubmit = function(e) {
+          e.preventDefault();
+          const formData = new FormData(form);
+          fetch(form.action + '?ajax=1', {
+            method: 'POST',
+            body: formData,
+            headers: {
+              'X-Requested-With': 'XMLHttpRequest',
+              'X-CSRFToken': getCookie('csrftoken')
+            },
+            credentials: 'same-origin'
+          })
+          .then(resp => resp.json())
+          .then(data => {
+            if (data.success) {
+              modal.hide();
+              location.reload(); // Odśwież kalendarz po sukcesie
+            } else if (data.form_html) {
+              modalBody.innerHTML = data.form_html;
+              if (typeof initEventFormJS === 'function') { initEventFormJS(); }
+            }
+          });
+        };
+      }
+    });
+  
+  modal.show();
+}
+
+// Funkcja do usuwania wydarzenia
+function deleteEvent(eventId) {
+  if (confirm('Czy na pewno chcesz usunąć to wydarzenie?')) {
+    window.location.href = `/delete/${eventId}/`;
+  }
+}
+
+// Ikona picker - nowy system z modalem
+let selectedIconValue = 'fa-calendar-check';
+let selectedIconLabel = 'Kalendarz (domyślna)';
+
+function openIconPickerModal() {
+  console.log('Otwieranie modala ikon...'); // Debug
+  const modalElement = document.getElementById('iconPickerModal');
+  if (!modalElement) {
+    console.error('Nie znaleziono elementu modala!');
+    return;
+  }
+  
+  const modal = new bootstrap.Modal(modalElement);
+  
+  // Zaznacz aktualnie wybraną ikonę
+  const iconBtns = document.querySelectorAll('#iconPickerModal .icon-btn');
+  iconBtns.forEach(btn => {
+    btn.classList.remove('active');
+    if (btn.dataset.value === selectedIconValue) {
+      btn.classList.add('active');
+    }
+  });
+  
+  // Dodaj event listenery do przycisków ikon
+  iconBtns.forEach(btn => {
+    btn.onclick = function() {
+      // Usuń aktywną klasę ze wszystkich przycisków
+      iconBtns.forEach(b => b.classList.remove('active'));
+      // Dodaj aktywną klasę do klikniętego przycisku
+      this.classList.add('active');
+      
+      // Zaktualizuj wybrane wartości
+      selectedIconValue = this.dataset.value;
+      selectedIconLabel = this.dataset.label;
+      console.log('Wybrano ikonę:', selectedIconValue, selectedIconLabel); // Debug
+    };
+  });
+  
+  modal.show();
+}
+
+function confirmIconSelection() {
+  console.log('Potwierdzanie wyboru ikony:', selectedIconValue); // Debug
+  
+  // Zaktualizuj ukryte pole formularza
+  const iconInput = document.getElementById('id_icon');
+  if (iconInput) {
+    iconInput.value = selectedIconValue;
+  }
+  
+  // Zaktualizuj wyświetlanie
+  updateIconDisplay();
+  
+  // Zamknij modal
+  const modalElement = document.getElementById('iconPickerModal');
+  const modal = bootstrap.Modal.getInstance(modalElement);
+  if (modal) {
+    modal.hide();
+  } else {
+    console.error('Nie można znaleźć instancji modala!');
+  }
+}
+
+function updateIconDisplay() {
+  const iconPreview = document.getElementById('selected-icon-preview');
+  const iconText = document.getElementById('selected-icon-text');
+  
+  if (iconPreview && iconText) {
+    iconPreview.className = `fa-solid ${selectedIconValue} fa-lg text-primary`;
+    iconText.textContent = selectedIconLabel;
+  }
+}
+
+
+</script>
+
+
+<!-- Modal do wyświetlania wydarzeń -->
+<div class="modal fade" id="eventsModal" tabindex="-1" aria-labelledby="eventsModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <!-- Tu zostanie załadowana zawartość -->
+    </div>
+  </div>
+</div>
+
+<!-- Modal do dodawania/edycji wydarzenia -->
+<div class="modal fade" id="addEventModal" tabindex="-1" aria-labelledby="addEventModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addEventModalLabel">Wydarzenie</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Zamknij"></button>
+      </div>
+      <div class="modal-body" id="addEventModalBody">
+        <!-- Tu zostanie załadowany formularz -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal do wyboru ikon -->
+<div class="modal fade" id="iconPickerModal" tabindex="-1" aria-labelledby="iconPickerModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="iconPickerModalLabel">Wybierz ikonę dla wydarzenia</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Zamknij"></button>
+      </div>
+      <div class="modal-body">
+        <div id="icon-picker-container">
+          <!-- Kategoria: Podstawowe -->
+          <div class="icon-category mb-3">
+            <h6 class="text-muted fw-bold mb-2">Podstawowe:</h6>
+            <div class="d-flex flex-wrap gap-2">
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-calendar-check" data-label="Kalendarz (domyślna)"><i class="fa-solid fa-calendar-check"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-calendar-plus" data-label="Dodaj"><i class="fa-solid fa-calendar-plus"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-calendar-day" data-label="Dzień"><i class="fa-solid fa-calendar-day"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-calendar-week" data-label="Tydzień"><i class="fa-solid fa-calendar-week"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-calendar-alt" data-label="Kalendarz"><i class="fa-solid fa-calendar-alt"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-clock" data-label="Czas"><i class="fa-solid fa-clock"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-bell" data-label="Dzwonek"><i class="fa-solid fa-bell"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-star" data-label="Gwiazdka"><i class="fa-solid fa-star"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-heart" data-label="Serce"><i class="fa-solid fa-heart"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-home" data-label="Dom"><i class="fa-solid fa-home"></i></button>
+            </div>
+          </div>
+          
+          <!-- Kategoria: Urodziny i święta -->
+          <div class="icon-category mb-3">
+            <h6 class="text-muted fw-bold mb-2">Urodziny i święta:</h6>
+            <div class="d-flex flex-wrap gap-2">
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-cake-candles" data-label="Tort urodzinowy"><i class="fa-solid fa-cake-candles"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-gift" data-label="Prezent"><i class="fa-solid fa-gift"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-baby" data-label="Dziecko"><i class="fa-solid fa-baby"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-users" data-label="Ludzie"><i class="fa-solid fa-users"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-user-friends" data-label="Przyjaciele"><i class="fa-solid fa-user-friends"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-handshake" data-label="Spotkanie"><i class="fa-solid fa-handshake"></i></button>
+            </div>
+          </div>
+          
+          <!-- Kategoria: Praca i edukacja -->
+          <div class="icon-category mb-3">
+            <h6 class="text-muted fw-bold mb-2">Praca i edukacja:</h6>
+            <div class="d-flex flex-wrap gap-2">
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-briefcase" data-label="Praca"><i class="fa-solid fa-briefcase"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-graduation-cap" data-label="Edukacja"><i class="fa-solid fa-graduation-cap"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-book" data-label="Książka"><i class="fa-solid fa-book"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-laptop" data-label="Komputer"><i class="fa-solid fa-laptop"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-lightbulb" data-label="Pomysł"><i class="fa-solid fa-lightbulb"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-chart-line" data-label="Finanse"><i class="fa-solid fa-chart-line"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-bank" data-label="Bank"><i class="fa-solid fa-bank"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-credit-card" data-label="Płatność"><i class="fa-solid fa-credit-card"></i></button>
+            </div>
+          </div>
+          
+          <!-- Kategoria: Podróże i transport -->
+          <div class="icon-category mb-3">
+            <h6 class="text-muted fw-bold mb-2">Podróże i transport:</h6>
+            <div class="d-flex flex-wrap gap-2">
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-plane" data-label="Podróż"><i class="fa-solid fa-plane"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-car" data-label="Samochód"><i class="fa-solid fa-car"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-bicycle" data-label="Rower"><i class="fa-solid fa-bicycle"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-ticket-alt" data-label="Bilet"><i class="fa-solid fa-ticket-alt"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-sun" data-label="Słońce"><i class="fa-solid fa-sun"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-moon" data-label="Księżyc"><i class="fa-solid fa-moon"></i></button>
+            </div>
+          </div>
+          
+          <!-- Kategoria: Sport i aktywność -->
+          <div class="icon-category mb-3">
+            <h6 class="text-muted fw-bold mb-2">Sport i aktywność:</h6>
+            <div class="d-flex flex-wrap gap-2">
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-dumbbell" data-label="Sport"><i class="fa-solid fa-dumbbell"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-running" data-label="Bieganie"><i class="fa-solid fa-running"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-swimming-pool" data-label="Basen"><i class="fa-solid fa-swimming-pool"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-stopwatch" data-label="Stoper"><i class="fa-solid fa-stopwatch"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-fire" data-label="Ogień"><i class="fa-solid fa-fire"></i></button>
+            </div>
+          </div>
+          
+          <!-- Kategoria: Zdrowie -->
+          <div class="icon-category mb-3">
+            <h6 class="text-muted fw-bold mb-2">Zdrowie:</h6>
+            <div class="d-flex flex-wrap gap-2">
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-stethoscope" data-label="Zdrowie"><i class="fa-solid fa-stethoscope"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-bed" data-label="Sen"><i class="fa-solid fa-bed"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-bath" data-label="Kąpiel"><i class="fa-solid fa-bath"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-leaf" data-label="Natura"><i class="fa-solid fa-leaf"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-tree" data-label="Drzewo"><i class="fa-solid fa-tree"></i></button>
+            </div>
+          </div>
+          
+          <!-- Kategoria: Jedzenie i napoje -->
+          <div class="icon-category mb-3">
+            <h6 class="text-muted fw-bold mb-2">Jedzenie i napoje:</h6>
+            <div class="d-flex flex-wrap gap-2">
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-utensils" data-label="Jedzenie"><i class="fa-solid fa-utensils"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-coffee" data-label="Kawa"><i class="fa-solid fa-coffee"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-beer" data-label="Piwo"><i class="fa-solid fa-beer"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-wine-glass" data-label="Wino"><i class="fa-solid fa-wine-glass"></i></button>
+            </div>
+          </div>
+          
+          <!-- Kategoria: Rozrywka -->
+          <div class="icon-category mb-3">
+            <h6 class="text-muted fw-bold mb-2">Rozrywka:</h6>
+            <div class="d-flex flex-wrap gap-2">
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-music" data-label="Muzyka"><i class="fa-solid fa-music"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-guitar" data-label="Gitara"><i class="fa-solid fa-guitar"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-microphone" data-label="Śpiew"><i class="fa-solid fa-microphone"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-film" data-label="Film"><i class="fa-solid fa-film"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-tv" data-label="Telewizja"><i class="fa-solid fa-tv"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-gamepad" data-label="Gry"><i class="fa-solid fa-gamepad"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-theater-masks" data-label="Teatr"><i class="fa-solid fa-theater-masks"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-camera" data-label="Aparat"><i class="fa-solid fa-camera"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-palette" data-label="Sztuka"><i class="fa-solid fa-palette"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-paint-brush" data-label="Malowanie"><i class="fa-solid fa-paint-brush"></i></button>
+            </div>
+          </div>
+          
+          <!-- Kategoria: Zwierzęta -->
+          <div class="icon-category mb-3">
+            <h6 class="text-muted fw-bold mb-2">Zwierzęta:</h6>
+            <div class="d-flex flex-wrap gap-2">
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-dog" data-label="Pies"><i class="fa-solid fa-dog"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-cat" data-label="Kot"><i class="fa-solid fa-cat"></i></button>
+            </div>
+          </div>
+          
+          <!-- Kategoria: Emocje -->
+          <div class="icon-category mb-3">
+            <h6 class="text-muted fw-bold mb-2">Emocje:</h6>
+            <div class="d-flex flex-wrap gap-2">
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-smile" data-label="Uśmiech"><i class="fa-solid fa-smile"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-frown" data-label="Smutek"><i class="fa-solid fa-frown"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-meh" data-label="Neutralny"><i class="fa-solid fa-meh"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-laugh" data-label="Śmiech"><i class="fa-solid fa-laugh"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-angry" data-label="Złość"><i class="fa-solid fa-angry"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-surprise" data-label="Zaskoczenie"><i class="fa-solid fa-surprise"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-tired" data-label="Zmęczenie"><i class="fa-solid fa-tired"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-kiss" data-label="Pocałunek"><i class="fa-solid fa-kiss"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-grin" data-label="Grin"><i class="fa-solid fa-grin"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-grin-beam" data-label="Grin z promieniami"><i class="fa-solid fa-grin-beam"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-grin-wink" data-label="Grin z mrugnięciem"><i class="fa-solid fa-grin-wink"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-grin-hearts" data-label="Grin z sercami"><i class="fa-solid fa-grin-hearts"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-grin-stars" data-label="Grin z gwiazdkami"><i class="fa-solid fa-grin-stars"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-grin-tears" data-label="Grin ze łzami"><i class="fa-solid fa-grin-tears"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-grin-tongue" data-label="Grin z językiem"><i class="fa-solid fa-grin-tongue"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-grin-squint" data-label="Grin z przymrużeniem"><i class="fa-solid fa-grin-squint"></i></button>
+            </div>
+          </div>
+          
+          <!-- Kategoria: Status -->
+          <div class="icon-category mb-3">
+            <h6 class="text-muted fw-bold mb-2">Status:</h6>
+            <div class="d-flex flex-wrap gap-2">
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-check-circle" data-label="Sukces"><i class="fa-solid fa-check-circle"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-times-circle" data-label="Błąd"><i class="fa-solid fa-times-circle"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-exclamation-triangle" data-label="Ostrzeżenie"><i class="fa-solid fa-exclamation-triangle"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-info-circle" data-label="Informacja"><i class="fa-solid fa-info-circle"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-question" data-label="Pytanie"><i class="fa-solid fa-question"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-exclamation" data-label="Ważne"><i class="fa-solid fa-exclamation"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-thumbs-up" data-label="Lubię"><i class="fa-solid fa-thumbs-up"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-thumbs-down" data-label="Nie lubię"><i class="fa-solid fa-thumbs-down"></i></button>
+            </div>
+          </div>
+          
+          <!-- Kategoria: Pogoda -->
+          <div class="icon-category mb-3">
+            <h6 class="text-muted fw-bold mb-2">Pogoda:</h6>
+            <div class="d-flex flex-wrap gap-2">
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-cloud" data-label="Pogoda"><i class="fa-solid fa-cloud"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-umbrella" data-label="Deszcz"><i class="fa-solid fa-umbrella"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-snowflake" data-label="Śnieg"><i class="fa-solid fa-snowflake"></i></button>
+            </div>
+          </div>
+          
+          <!-- Kategoria: Dom i remont -->
+          <div class="icon-category mb-3">
+            <h6 class="text-muted fw-bold mb-2">Dom i remont:</h6>
+            <div class="d-flex flex-wrap gap-2">
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-tools" data-label="Narzędzia"><i class="fa-solid fa-tools"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-wrench" data-label="Naprawa"><i class="fa-solid fa-wrench"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-hammer" data-label="Remont"><i class="fa-solid fa-hammer"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-paint-roller" data-label="Malowanie"><i class="fa-solid fa-paint-roller"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-broom" data-label="Sprzątanie"><i class="fa-solid fa-broom"></i></button>
+            </div>
+          </div>
+          
+          <!-- Kategoria: Zakupy -->
+          <div class="icon-category mb-3">
+            <h6 class="text-muted fw-bold mb-2">Zakupy:</h6>
+            <div class="d-flex flex-wrap gap-2">
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-shopping-cart" data-label="Zakupy"><i class="fa-solid fa-shopping-cart"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-newspaper" data-label="Gazeta"><i class="fa-solid fa-newspaper"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-mobile-alt" data-label="Telefon"><i class="fa-solid fa-mobile-alt"></i></button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Anuluj</button>
+        <button type="button" class="btn btn-primary" onclick="confirmIconSelection()">Wybierz</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal czyszczenia kalendarza -->
+<div class="modal fade" id="clearCalendarModal" tabindex="-1" aria-labelledby="clearCalendarModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="clearCalendarModalLabel">Wyczyść kalendarz</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Zamknij"></button>
+      </div>
+      <form method="post" action="{% url 'clear_calendar' %}">
+        {% csrf_token %}
+        <input type="hidden" name="year" value="{{ year }}">
+        <input type="hidden" name="month" value="{{ month }}">
+        <div class="modal-body">
+          <p>Co chcesz usunąć?</p>
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="scope" id="clear-month" value="month" checked>
+            <label class="form-check-label" for="clear-month">Wszystkie wydarzenia z miesiąca: <b>{{ month_name }} {{ year }}</b></label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="scope" id="clear-year" value="year">
+            <label class="form-check-label" for="clear-year">Wszystkie wydarzenia z roku: <b>{{ year }}</b></label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="scope" id="clear-all" value="all">
+            <label class="form-check-label" for="clear-all">Wszystkie wydarzenia (cały kalendarz)</label>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Anuluj</button>
+          <button type="submit" class="btn btn-danger"><i class="bi bi-trash"></i> Wyczyść</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<style>
+  .calendar-day {
+    height: 120px;
+    vertical-align: top;
+    position: relative;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  
+  .icon-category {
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 12px;
+    background: #f8f9fa;
+  }
+
+  .icon-category:hover {
+    background: #e9ecef;
+    border-color: #dee2e6;
+  }
+
+  .icon-btn {
+    min-width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+  }
+
+  .icon-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+
+  .icon-btn.active, .icon-btn:focus {
+    border-color: #1976d2 !important;
+    background: #e3f2fd !important;
+  }
+
+  #selected-icon-display {
+    background: #f8f9fa;
+    border: 2px solid #dee2e6 !important;
+    transition: border-color 0.2s ease;
+  }
+
+  #selected-icon-display:hover {
+    border-color: #1976d2 !important;
+  }
+</style>
+{% endblock %} 
