@@ -38,9 +38,6 @@ def calendar_view(request):
     events = Event.objects.filter(user=request.user).all()
     events_by_day = {d: [] for d in days}
     for event in events:
-        # DEBUG: wypisz dane wydarzenia cyklicznego
-        if event.is_recurring:
-            print(f"[DEBUG] Cykliczne: {event} | recurrence_type={event.recurrence_type}")
         # Wydarzenia niecykliczne
         if not event.is_recurring or event.recurrence_type == 'none' or not event.recurrence_type:
             if event.date in events_by_day:

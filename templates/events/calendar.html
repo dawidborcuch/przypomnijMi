@@ -404,7 +404,7 @@ function showEventsModal(event, eventCount, dayStr) {
       }
     })
     .catch(error => {
-      console.error('Błąd podczas pobierania wydarzeń:', error);
+      // Obsługa błędu
     });
 }
 
@@ -467,10 +467,8 @@ let selectedIconValue = 'fa-calendar-check';
 let selectedIconLabel = 'Kalendarz (domyślna)';
 
 function openIconPickerModal() {
-  console.log('Otwieranie modala ikon...'); // Debug
   const modalElement = document.getElementById('iconPickerModal');
   if (!modalElement) {
-    console.error('Nie znaleziono elementu modala!');
     return;
   }
   
@@ -496,7 +494,6 @@ function openIconPickerModal() {
       // Zaktualizuj wybrane wartości
       selectedIconValue = this.dataset.value;
       selectedIconLabel = this.dataset.label;
-      console.log('Wybrano ikonę:', selectedIconValue, selectedIconLabel); // Debug
     };
   });
   
@@ -504,8 +501,6 @@ function openIconPickerModal() {
 }
 
 function confirmIconSelection() {
-  console.log('Potwierdzanie wyboru ikony:', selectedIconValue); // Debug
-  
   // Zaktualizuj ukryte pole formularza
   const iconInput = document.getElementById('id_icon');
   if (iconInput) {
@@ -520,8 +515,6 @@ function confirmIconSelection() {
   const modal = bootstrap.Modal.getInstance(modalElement);
   if (modal) {
     modal.hide();
-  } else {
-    console.error('Nie można znaleźć instancji modala!');
   }
 }
 
