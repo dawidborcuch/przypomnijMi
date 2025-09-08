@@ -173,6 +173,9 @@ def delete_event(request, event_id):
     if request.method == 'POST':
         event.delete()
         messages.success(request, 'Wydarzenie zostało usunięte.')
+        # Obsługa żądania AJAX
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.GET.get('ajax') == '1':
+            return JsonResponse({'success': True})
         return redirect('calendar')
     return render(request, 'events/confirm_delete.html', {'event': event})
 

@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load get_item %}
+{% load pluralize_pl %}
 {% block content %}
 <style>
   .calendar-container {
@@ -206,7 +207,7 @@
                       {% endfor %}
                     </div>
                     {% if events|length > 1 %}
-                      <div class="event-count">{{ events|length }} wydarzeń</div>
+                      <div class="event-count">{{ events|length }} {{ events|length|polish_pluralize:"wydarzenie,wydarzenia,wydarzeń" }}</div>
                     {% endif %}
                   {% endif %}
                 </div>
@@ -457,9 +458,28 @@ function editEvent(eventId) {
 
 // Funkcja do usuwania wydarzenia
 function deleteEvent(eventId) {
-  if (confirm('Czy na pewno chcesz usunąć to wydarzenie?')) {
+  if (!confirm('Czy na pewno chcesz usunąć to wydarzenie?')) return;
+  fetch(`/delete/${eventId}/?ajax=1`, {
+    method: 'POST',
+    headers: {
+      'X-Requested-With': 'XMLHttpRequest',
+      'X-CSRFToken': getCookie('csrftoken')
+    },
+    credentials: 'same-origin'
+  })
+  .then(resp => resp.json())
+  .then(data => {
+    if (data && data.success) {
+      const eventsModalEl = document.getElementById('eventsModal');
+      const modal = bootstrap.Modal.getInstance(eventsModalEl);
+      if (modal) modal.hide();
+      location.reload();
+    }
+  })
+  .catch(() => {
+    // w razie błędu, fallback do klasycznego usunięcia
     window.location.href = `/delete/${eventId}/`;
-  }
+  });
 }
 
 // Ikona picker - nowy system z modalem
@@ -494,6 +514,9 @@ function openIconPickerModal() {
       // Zaktualizuj wybrane wartości
       selectedIconValue = this.dataset.value;
       selectedIconLabel = this.dataset.label;
+
+      // Natychmiast zatwierdź wybór
+      confirmIconSelection();
     };
   });
   
@@ -758,7 +781,6 @@ function updateIconDisplay() {
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Anuluj</button>
-        <button type="button" class="btn btn-primary" onclick="confirmIconSelection()">Wybierz</button>
       </div>
     </div>
   </div>
