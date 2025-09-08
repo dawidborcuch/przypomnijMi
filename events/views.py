@@ -11,6 +11,7 @@ from django.template.loader import render_to_string
 from django.http import JsonResponse, HttpResponse
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
+from django.views.decorators.csrf import csrf_exempt
 
 # Create your views here.
 
@@ -200,6 +201,20 @@ def clear_calendar(request):
     return redirect(reverse('calendar') + f'?month={month}&year={year}')
 
 @login_required
+@require_http_methods(["POST"])
+def move_event_date(request, event_id):
+    """Przenieś wydarzenie na inny dzień (drag & drop). Oczekuje POST new_date=YYYY-MM-DD"""
+    event = get_object_or_404(Event, id=event_id, user=request.user)
+    new_date_str = request.POST.get('new_date')
+    try:
+        new_date = datetime.strptime(new_date_str, '%Y-%m-%d').date()
+    except Exception:
+        return JsonResponse({'success': False, 'error': 'Nieprawidłowa data'}, status=400)
+    event.date = new_date
+    event.save(update_fields=['date'])
+    return JsonResponse({'success': True})
+
+@login_required
 @require_http_methods(["GET"])
 def api_events_by_date(request, event_date):
     """API endpoint do pobierania wydarzeń dla konkretnego dnia"""
@@ -281,3 +296,74 @@ def api_events_by_date(request, event_date):
             'success': False,
             'error': str(e)
         }, status=500)
+
+@login_required
+@require_http_methods(["GET"])
+def api_upcoming(request):
+    """Zwraca listę nadchodzących wydarzeń w horyzoncie days (domyślnie 14)."""
+    try:
+        days_ahead = int(request.GET.get('days', '14'))
+        today_ = date.today()
+        end_ = today_ + timedelta(days=days_ahead)
+        all_events = Event.objects.filter(user=request.user)
+        upcoming = []
+        for ev in all_events:
+            if not ev.is_recurring or ev.recurrence_type in (None, '', 'none'):
+                if today_ <= ev.date <= end_:
+                    upcoming.append((ev.date, ev))
+            else:
+                # obsługa recurring: yearly, daily, weekly, monthly w ograniczonym horyzoncie
+                current = ev.date
+                limit = end_
+                # dla yearly – generuj tylko jeśli w horyzoncie > roku? tu: tylko jeśli ten rok w zakresie
+                if ev.recurrence_type == 'yearly':
+                    for d in (today_ + timedelta(days=i) for i in range((end_ - today_).days + 1)):
+                        if d.day == ev.date.day and d.month == ev.date.month:
+                            upcoming.append((d, ev))
+                    continue
+                # dla daily/weekly/monthly – iteruj od startu aż do końca
+                end_rec = ev.recurrence_end or limit
+                cur = max(current, today_)
+                # wyrównaj cur do najbliższego wystąpienia >= today_
+                if ev.recurrence_type == 'weekly':
+                    delta_days = (cur - ev.date).days
+                    if delta_days % 7 != 0:
+                        cur = cur + timedelta(days=(7 - (delta_days % 7)))
+                while cur <= end_rec and cur <= end_:
+                    if cur >= today_:
+                        upcoming.append((cur, ev))
+                    if ev.recurrence_type == 'daily':
+                        cur += timedelta(days=1)
+                    elif ev.recurrence_type == 'weekly':
+                        cur += timedelta(weeks=1)
+                    elif ev.recurrence_type == 'monthly':
+                        y, m = cur.year, cur.month + 1
+                        if m > 12:
+                            y += 1
+                            m = 1
+                        try:
+                            cur = cur.replace(year=y, month=m)
+                        except ValueError:
+                            last_day_of_month = monthrange(y, m)[1]
+                            cur = cur.replace(year=y, month=m, day=last_day_of_month)
+                    else:
+                        break
+        # sortuj i ogranicz do max 50 pozycji
+        upcoming.sort(key=lambda x: (x[0], x[1].id))
+        result = []
+        for d, ev in upcoming[:50]:
+            result.append({
+                'id': ev.id,
+                'date_iso': d.strftime('%Y-%m-%d'),
+                'date': d.strftime('%d.%m.%Y'),
+                'category': ev.category,
+                'category_display': ev.get_category_display(),
+                'custom_category': ev.custom_category,
+                'description': ev.description,
+                'icon': ev.icon or 'fa-calendar-check',
+                'is_recurring': ev.is_recurring,
+                'recurrence_type': ev.recurrence_type,
+            })
+        return JsonResponse({'success': True, 'events': result})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)

@@ -3,6 +3,14 @@
 {% load pluralize_pl %}
 {% block content %}
 <style>
+  :root {
+    --cat-urodziny: #e91e63;
+    --cat-imieniny: #9c27b0;
+    --cat-rocznice: #ff9800;
+    --cat-przeglad: #03a9f4;
+    --cat-ubezpieczenie: #4caf50;
+    --cat-inne: #607d8b;
+  }
   .calendar-container {
     max-width: 1400px;
     margin: 0 auto;
@@ -18,7 +26,7 @@
     box-shadow: 0 2px 16px rgba(33,150,243,0.07);
   }
   .calendar-table th {
-    background: #e3f2fd;
+    background: linear-gradient(90deg, #e3f2fd 0%, #f1f8ff 100%);
     font-weight: 600;
     font-size: 1.15rem;
     padding: 16px 0 12px 0;
@@ -36,6 +44,7 @@
     max-width: 180px;
     box-sizing: border-box;
   }
+  .calendar-weekend .calendar-content { background: #fafbff; }
   .calendar-content {
     transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
     background: inherit;
@@ -99,6 +108,21 @@
     background: rgba(25, 118, 210, 0.2);
     transform: scale(1.1);
   }
+  /* Kolory kategorii dla ikon */
+  .cat-urodziny { color: var(--cat-urodziny) !important; }
+  .cat-imieniny { color: var(--cat-imieniny) !important; }
+  .cat-rocznice { color: var(--cat-rocznice) !important; }
+  .cat-przeglad { color: var(--cat-przeglad) !important; }
+  .cat-ubezpieczenie { color: var(--cat-ubezpieczenie) !important; }
+  .cat-inne { color: var(--cat-inne) !important; }
+  .badge-cat { border-radius: 999px; padding: 2px 8px; font-weight: 600; }
+  .badge-cat-urodziny { background: color-mix(in srgb, var(--cat-urodziny) 18%, white); color: var(--cat-urodziny); }
+  .badge-cat-imieniny { background: color-mix(in srgb, var(--cat-imieniny) 18%, white); color: var(--cat-imieniny); }
+  .badge-cat-rocznice { background: color-mix(in srgb, var(--cat-rocznice) 18%, white); color: var(--cat-rocznice); }
+  .badge-cat-przeglad { background: color-mix(in srgb, var(--cat-przeglad) 18%, white); color: var(--cat-przeglad); }
+  .badge-cat-ubezpieczenie { background: color-mix(in srgb, var(--cat-ubezpieczenie) 18%, white); color: var(--cat-ubezpieczenie); }
+  .badge-cat-inne { background: color-mix(in srgb, var(--cat-inne) 18%, white); color: var(--cat-inne); }
+  .event-count-badge { background: #e3f2fd; color: #0d47a1; font-weight: 600; }
   .event-count {
     font-size: 0.8rem;
     color: #666;
@@ -169,7 +193,7 @@
   }
 
 </style>
-<div class="calendar-container mt-4">
+<div class="calendar-container mt-4" id="calendarSurface">
   <h2>Kalendarz</h2>
   <div class="d-flex align-items-center justify-content-center mb-3">
     <a href="?month={{ prev_month }}&year={{ prev_year }}" class="calendar-nav" title="Poprzedni miesiąc"><i class="bi bi-chevron-left"></i></a>
@@ -177,6 +201,24 @@
     <a href="?month={{ next_month }}&year={{ next_year }}" class="calendar-nav" title="Następny miesiąc"><i class="bi bi-chevron-right"></i></a>
   </div>
   <div class="table-responsive">
+    <div id="upcomingPanel" class="mb-3" style="max-width:1400px;margin:0 auto;">
+      <div class="card">
+        <div class="card-body d-flex align-items-center justify-content-between">
+          <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-clock-history text-primary"></i>
+            <span class="fw-semibold">Nadchodzące (14 dni)</span>
+          </div>
+          <div>
+            <select id="upcomingDays" class="form-select form-select-sm" style="width:auto;display:inline-block">
+              <option value="7">7 dni</option>
+              <option value="14" selected>14 dni</option>
+              <option value="30">30 dni</option>
+            </select>
+          </div>
+        </div>
+        <ul id="upcomingList" class="list-group list-group-flush"></ul>
+      </div>
+    </div>
     <table class="calendar-table table table-bordered text-center align-middle">
       <thead>
         <tr>
@@ -195,19 +237,23 @@
           {% for day in week %}
             {% if day %}
               {% with events=events_by_day|get_item:day day_str=day|date:'Y-m-d' %}
-              <td class="calendar-day{% if day == today %} calendar-today{% endif %}" 
+              <td class="calendar-day{% if day == today %} calendar-today{% endif %} {% if forloop.counter >= 6 %}calendar-weekend{% endif %}"
                   style="word-break:break-word; cursor:pointer; overflow:hidden; position:relative; padding:0; width:13.5vw; min-width:120px; max-width:180px; box-sizing:border-box;" 
-                  onclick="handleDayClick(event, '{{ day_str }}', {{ events|length|yesno:'true,false' }})">
+                  onclick="handleDayClick(event, '{{ day_str }}', {{ events|length|yesno:'true,false' }})"
+                  ondragover="event.preventDefault()" ondrop="handleDrop(event, '{{ day_str }}')">
                 <div class="calendar-content">
                   <div class="fw-bold">{{ day.day }}</div>
                   {% if events %}
                     <div class="event-icons">
                       {% for event in events %}
-                        <i class="fa-solid {% if event.icon %}{{ event.icon }}{% else %}fa-calendar-check{% endif %} event-icon" title="{{ event.get_category_display }}{% if event.category == 'inne' %} ({{ event.custom_category }}){% endif %}"></i>
+                        <i class="fa-solid {% if event.icon %}{{ event.icon }}{% else %}fa-calendar-check{% endif %} event-icon cat-{{ event.category }}" title="{{ event.get_category_display }}{% if event.category == 'inne' %} ({{ event.custom_category }}){% endif %}"
+                           draggable="true" ondragstart="handleDragStart(event, {{ event.id }})"></i>
                       {% endfor %}
                     </div>
                     {% if events|length > 1 %}
-                      <div class="event-count">{{ events|length }} {{ events|length|polish_pluralize:"wydarzenie,wydarzenia,wydarzeń" }}</div>
+                      <div class="mt-1">
+                        <span class="badge event-count-badge">{{ events|length }} {{ events|length|polish_pluralize:"wydarzenie,wydarzenia,wydarzeń" }}</span>
+                      </div>
                     {% endif %}
                   {% endif %}
                 </div>
@@ -230,8 +276,6 @@
     <button type="button" class="btn btn-danger ms-auto" data-bs-toggle="modal" data-bs-target="#clearCalendarModal"><i class="bi bi-trash"></i> Wyczyść kalendarz</button>
   </div>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.js"></script>
 <script>
 function initEventFormJS() {
   // Licznik znaków opisu
@@ -281,6 +325,28 @@ function getCookie(name) {
   }
   return cookieValue;
 }
+// Drag & drop zdarzeń
+let draggedEventId = null;
+function handleDragStart(ev, eventId) {
+  draggedEventId = eventId;
+  try { ev.dataTransfer.setData('text/plain', String(eventId)); } catch(e) {}
+}
+function handleDrop(ev, dateStr) {
+  ev.preventDefault();
+  const eventId = draggedEventId || (ev.dataTransfer ? ev.dataTransfer.getData('text/plain') : null);
+  if (!eventId) return;
+  const form = new FormData();
+  form.append('new_date', dateStr);
+  fetch(`/api/move/${eventId}/`, {
+    method: 'POST',
+    body: form,
+    headers: { 'X-CSRFToken': getCookie('csrftoken') },
+    credentials: 'same-origin'
+  }).then(r => r.json()).then(data => {
+    if (data && data.success) { location.reload(); }
+  });
+}
+
 
 // Funkcja do otwierania modala i ładowania formularza przez AJAX
 function openAddEventModal(dateStr) {
@@ -357,14 +423,18 @@ function showEventsModal(event, eventCount, dayStr) {
         `;
         
         data.events.forEach(event => {
-          const category = event.category === 'inne' ? event.custom_category : event.category_display;
+          const categoryText = event.category === 'inne' ? event.custom_category : event.category_display;
           const recurringIcon = event.is_recurring && event.recurrence_type !== 'none' ? '<span class="event-item-recurring">🔁</span>' : '';
+          const catClass = `cat-${event.category}`;
+          const badgeClass = `badge-cat badge-cat-${event.category}`;
           
           modalContent += `
             <div class="event-item">
-              <i class="fa-solid ${event.icon || 'fa-calendar-check'} event-item-icon"></i>
+              <i class="fa-solid ${event.icon || 'fa-calendar-check'} event-item-icon ${catClass}"></i>
               <div class="event-item-details">
-                <div class="event-item-title">${category}${recurringIcon}</div>
+                <div class="event-item-title">
+                  <span class="${badgeClass}">${categoryText}</span> ${recurringIcon}
+                </div>
                 <div class="event-item-description">${event.description}</div>
                 <div class="event-item-date">${event.date}</div>
                 <div class="event-item-actions mt-2">
@@ -553,8 +623,43 @@ function updateIconDisplay() {
 
 
 </script>
-
-
+<script>
+// Panel nadchodzących
+function loadUpcoming() {
+  const sel = document.getElementById('upcomingDays');
+  const days = sel ? sel.value : '14';
+  fetch(`/api/upcoming/?days=${days}`)
+    .then(r => r.json())
+    .then(data => {
+      const ul = document.getElementById('upcomingList');
+      if (!ul) return;
+      ul.innerHTML = '';
+      if (!data.success || !data.events || data.events.length === 0) {
+        ul.innerHTML = '<li class="list-group-item text-muted">Brak nadchodzących wydarzeń</li>';
+        return;
+      }
+      data.events.forEach(ev => {
+        const li = document.createElement('li');
+        li.className = 'list-group-item d-flex align-items-center justify-content-between';
+        const left = document.createElement('div');
+        left.innerHTML = `<i class="fa-solid ${ev.icon} me-2"></i><span class="fw-semibold">${ev.category === 'inne' ? (ev.custom_category || ev.category_display) : ev.category_display}</span> — ${ev.description}`;
+        const right = document.createElement('span');
+        right.className = 'text-muted';
+        right.textContent = ev.date;
+        li.appendChild(left);
+        li.appendChild(right);
+        ul.appendChild(li);
+      });
+    });
+}
+document.addEventListener('DOMContentLoaded', function(){
+  const sel = document.getElementById('upcomingDays');
+  if (sel) {
+    sel.addEventListener('change', loadUpcoming);
+    loadUpcoming();
+  }
+});
+</script>
 <!-- Modal do wyświetlania wydarzeń -->
 <div class="modal fade" id="eventsModal" tabindex="-1" aria-labelledby="eventsModalLabel" aria-hidden="true">
   <div class="modal-dialog">

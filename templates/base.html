@@ -1,4 +1,4 @@
-d<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
@@ -8,8 +8,17 @@ d<!DOCTYPE html>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
+      body {
+        background-color: #f6faff !important;
+        background-image: none !important;
+        background-size: auto;
+        background-position: top left;
+      }
       body.dark-mode {
         background-color: #181a1b !important;
+        background-image: none !important;
+        background-size: auto;
+        background-position: top left;
         color: #e0e0e0 !important;
       }
       body.dark-mode .navbar, body.dark-mode .card, body.dark-mode .table, body.dark-mode .modal-content {
@@ -35,13 +44,17 @@ d<!DOCTYPE html>
 </head>
 <body>
 <!-- TEST: Ikona Font Awesome -->
-<div style="position:fixed;top:10px;right:10px;z-index:9999;background:#fff;padding:4px 12px;border-radius:8px;box-shadow:0 2px 8px #0001;">
+<div style="position:fixed;top:10px;right:10px;z-index:5;background:#fff;padding:4px 12px;border-radius:8px;box-shadow:0 2px 8px #0001; pointer-events:none;">
   <i class="fa-solid fa-calendar-check fa-2x text-success"></i> Test FA
 </div>
-<nav class="navbar navbar-expand-lg navbar-light bg-light mb-4">
+<nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm">
   <div class="container">
-    <a class="navbar-brand" href="/">przypomnij-mi.pl</a>
-    <button class="btn btn-outline-secondary ms-2" id="darkModeToggle" title="Przełącz tryb ciemny"><i class="bi bi-moon"></i></button>
+    <a class="navbar-brand fw-bold d-flex align-items-center" href="/">
+      <i class="fa-solid fa-calendar-check text-primary me-2"></i> przypomnij-mi.pl
+    </a>
+    <div class="d-flex align-items-center gap-2">
+      <button class="btn btn-outline-secondary" id="darkModeToggle" title="Przełącz tryb ciemny"><i class="bi bi-moon"></i></button>
+    </div>
     <div class="collapse navbar-collapse">
       <ul class="navbar-nav ms-auto">
         {% if user.is_authenticated %}
@@ -56,6 +69,9 @@ d<!DOCTYPE html>
       </ul>
     </div>
   </div>
+  <style>
+    .navbar .dropdown-menu { min-width: 200px; }
+  </style>
 </nav>
 {% block content %}{% endblock %}
 <div aria-live="polite" aria-atomic="true" class="position-fixed top-0 end-0 p-3" style="z-index: 1080;">
@@ -93,7 +109,7 @@ function showToast(msg) {
   var toast = new bootstrap.Toast(toastEl, { delay: 3500 });
   toast.show();
 }
-document.addEventListener('DOMContentLoaded', function() {
+function initPrzypomnijMi() {
   setDarkMode(detectDarkMode());
   darkModeToggle.addEventListener('click', function() {
     setDarkMode(!document.body.classList.contains('dark-mode'));
@@ -105,7 +121,14 @@ document.addEventListener('DOMContentLoaded', function() {
     var djangoMessages = [];
   {% endif %}
   djangoMessages.forEach(function(msg) { showToast(msg); });
-});
+}
+(function(){
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initPrzypomnijMi);
+  } else {
+    initPrzypomnijMi();
+  }
+})();
 </script>
 {% if messages %}
 <script>
