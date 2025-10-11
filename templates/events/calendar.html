@@ -19,6 +19,19 @@
   .table-responsive {
     overflow: visible !important;
   }
+  .table-responsive * {
+    overflow: visible !important;
+  }
+  .calendar-table,
+  .calendar-table *,
+  .calendar-day,
+  .calendar-day *,
+  .calendar-content,
+  .calendar-content *,
+  .event-icons,
+  .event-icons * {
+    overflow: visible !important;
+  }
   .calendar-table {
     width: 100%;
     min-width: 900px;
@@ -67,6 +80,9 @@
     cursor: pointer;
     z-index: 1;
   }
+  .calendar-today {
+    overflow: hidden !important;
+  }
   .calendar-today .calendar-content {
     background: #bbdefb !important;
     border: 2.5px solid #1976d2 !important;
@@ -74,6 +90,7 @@
     box-shadow: 0 4px 16px rgba(33,150,243,0.18);
     cursor: pointer;
     z-index: 1;
+    overflow: hidden;
   }
   .calendar-nav {
     font-size: 2rem;
@@ -133,8 +150,9 @@
   .event-card:hover {
     transform: translateY(-1px) scale(1.02);
     box-shadow: 0 3px 8px rgba(0,0,0,0.15);
-    z-index: 100;
+    z-index: 1000;
     position: relative;
+    overflow: visible !important;
   }
   .event-card:active {
     cursor: grabbing;
@@ -349,17 +367,18 @@
             {% if day %}
               {% with events=events_by_day|get_item:day day_str=day|date:'Y-m-d' %}
               <td class="calendar-day{% if day == today %} calendar-today{% endif %} {% if forloop.counter >= 6 %}calendar-weekend{% endif %}"
-                  style="word-break:break-word; cursor:pointer; overflow:visible; position:relative; padding:0; width:13.5vw; min-width:120px; max-width:180px; box-sizing:border-box;" 
+                  style="word-break:break-word; cursor:pointer; {% if day == today %}overflow:hidden !important;{% else %}overflow:visible;{% endif %} position:relative; padding:0; width:13.5vw; min-width:120px; max-width:180px; box-sizing:border-box;" 
                   onclick="handleDayClick(event, '{{ day_str }}', {{ events|length|yesno:'true,false' }})"
                   ondragover="event.preventDefault()" ondrop="handleDrop(event, '{{ day_str }}')">
                 <div class="calendar-content">
                   <div class="fw-bold">{{ day.day }}</div>
                   {% if events %}
-                    <div class="event-icons">
+                    <div class="event-icons" style="overflow: visible !important;">
                       {% for event in events %}
                         <div class="event-card {{ event.category }}" 
                              title="{{ event.get_category_display }}{% if event.category == 'inne' %} ({{ event.custom_category }}){% endif %}"
-                             draggable="true" ondragstart="handleDragStart(event, {{ event.id }})">
+                             draggable="true" ondragstart="handleDragStart(event, {{ event.id }})"
+                             style="overflow: visible !important; position: relative !important;">
                           <i class="fa-solid {% if event.icon %}{{ event.icon }}{% else %}fa-calendar-check{% endif %} event-card-icon cat-{{ event.category }}"></i>
                           <span class="event-card-text">{{ event.description|truncatechars:25 }}</span>
                           {% if event.is_recurring %}
