@@ -2,6 +2,28 @@
 {% load get_item %}
 {% load pluralize_pl %}
 {% block content %}
+
+<!-- View Switcher -->
+<div class="view-switcher-container">
+  <div class="view-switcher">
+    <div class="view-switcher-header">
+      <h2 class="view-switcher-title">Twój Kalendarz</h2>
+      <p class="view-switcher-subtitle">Wybierz sposób wyświetlania wydarzeń</p>
+    </div>
+    <div class="view-switcher-buttons">
+      <a href="/" class="view-switcher-btn active" id="calendarView">
+        <i class="bi bi-calendar3"></i>
+        <span>Kalendarz</span>
+        <small>Widok miesięczny</small>
+      </a>
+      <a href="/timeline/" class="view-switcher-btn" id="timelineView">
+        <i class="bi bi-list-ul"></i>
+        <span>Timeline</span>
+        <small>Widok chronologiczny</small>
+      </a>
+    </div>
+  </div>
+</div>
 <style>
   :root {
     --cat-urodziny: #e91e63;
@@ -10,6 +32,110 @@
     --cat-przeglad: #03a9f4;
     --cat-ubezpieczenie: #4caf50;
     --cat-inne: #607d8b;
+  }
+  
+  /* View Switcher Styles */
+  .view-switcher-container {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    margin: -20px -20px 30px -20px;
+    padding: 40px 20px;
+    border-radius: 0 0 20px 20px;
+  }
+  
+  .view-switcher {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  
+  .view-switcher-header {
+    text-align: center;
+    margin-bottom: 30px;
+  }
+  
+  .view-switcher-title {
+    color: white;
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+  
+  .view-switcher-subtitle {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 1.1rem;
+    margin: 0;
+  }
+  
+  .view-switcher-buttons {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  
+  .view-switcher-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 25px 30px;
+    background: rgba(255, 255, 255, 0.15);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 16px;
+    color: white;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    min-width: 160px;
+  }
+  
+  .view-switcher-btn:hover {
+    background: rgba(255, 255, 255, 0.25);
+    border-color: rgba(255, 255, 255, 0.4);
+    transform: translateY(-2px);
+    color: white;
+    text-decoration: none;
+  }
+  
+  .view-switcher-btn.active {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.6);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  }
+  
+  .view-switcher-btn i {
+    font-size: 2rem;
+    margin-bottom: 10px;
+  }
+  
+  .view-switcher-btn span {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 5px;
+  }
+  
+  .view-switcher-btn small {
+    font-size: 0.9rem;
+    opacity: 0.8;
+  }
+  
+  @media (max-width: 768px) {
+    .view-switcher-container {
+      margin: -20px -15px 20px -15px;
+      padding: 30px 15px;
+    }
+    
+    .view-switcher-title {
+      font-size: 1.5rem;
+    }
+    
+    .view-switcher-buttons {
+      flex-direction: column;
+      align-items: center;
+    }
+    
+    .view-switcher-btn {
+      width: 100%;
+      max-width: 300px;
+    }
   }
   .calendar-container {
     max-width: 1400px;

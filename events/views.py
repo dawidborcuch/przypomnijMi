@@ -367,3 +367,54 @@ def api_upcoming(request):
         return JsonResponse({'success': True, 'events': result})
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+@login_required
+def timeline_view(request):
+    """Widok kalendarza w stylu Timeline - pokazuje 12 miesięcy w przód"""
+    from datetime import date, timedelta
+    from calendar import monthrange
+    
+    # Oblicz zakres 12 miesięcy w przód od aktualnego miesiąca
+    today = date.today()
+    current_month = today.replace(day=1)  # Pierwszy dzień aktualnego miesiąca
+    
+    # Oblicz ostatni dzień 12 miesięcy w przód
+    from datetime import timedelta
+    from dateutil.relativedelta import relativedelta
+    
+    end_month = current_month + relativedelta(months=12)
+    
+    # Pobierz wydarzenia z zakresu 12 miesięcy
+    events = Event.objects.filter(
+        user=request.user,
+        date__gte=current_month,
+        date__lt=end_month
+    ).order_by('date')
+
+    # Grupuj wydarzenia według miesięcy
+    events_by_month = {}
+    for event in events:
+        month_key = event.date.strftime('%Y-%m')
+        if month_key not in events_by_month:
+            events_by_month[month_key] = []
+        events_by_month[month_key].append(event)
+
+    # Generuj wszystkie miesiące w zakresie (nawet puste)
+    months_in_range = []
+    current = current_month
+    while current < end_month:
+        month_key = current.strftime('%Y-%m')
+        months_in_range.append(month_key)
+        
+        # Przejdź do następnego miesiąca
+        if current.month == 12:
+            current = current.replace(year=current.year + 1, month=1)
+        else:
+            current = current.replace(month=current.month + 1)
+
+    return render(request, 'events/timeline.html', {
+        'events_by_month': events_by_month,
+        'months_in_range': months_in_range,
+        'current_day': date.today().day,
+        'current_month': today.strftime('%Y-%m'),
+    })
