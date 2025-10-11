@@ -354,6 +354,313 @@
     border: 2px dashed #e5e7eb;
   }
   
+  /* Nowoczesne style dla modali */
+  .modal-content {
+    border: none;
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+  }
+  
+  .modal-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 25px 30px;
+    position: relative;
+  }
+  
+  .modal-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.9) 0%, rgba(118, 75, 162, 0.9) 100%);
+    z-index: -1;
+  }
+  
+  .modal-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  
+  .modal-title::before {
+    content: '📅';
+    font-size: 1.8rem;
+  }
+  
+  /* Style dla przycisków zamknięcia w głównych modalach */
+  .modal-header .btn-close {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    opacity: 1;
+    position: relative;
+    transition: all 0.3s ease;
+  }
+  
+  .modal-header .btn-close:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.1);
+  }
+  
+  .modal-header .btn-close::before {
+    content: '×';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 24px;
+    font-weight: 300;
+    color: white;
+  }
+  
+  /* Dla modalu ikon używaj domyślnego Bootstrap z lekkimi modyfikacjami */
+  #iconPickerModal .btn-close {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    opacity: 0.7;
+    position: relative;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+  
+  #iconPickerModal .btn-close:hover {
+    background: rgba(255, 255, 255, 0.2);
+    opacity: 1;
+    transform: scale(1.05);
+  }
+  
+  #iconPickerModal .btn-close::before {
+    content: '×';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 18px;
+    font-weight: 300;
+    color: white;
+    display: block;
+  }
+  
+  .modal-body {
+    padding: 30px;
+    background: #fafbfc;
+  }
+  
+  .form-label {
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 8px;
+    font-size: 0.95rem;
+  }
+  
+  .form-control, .form-select {
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 12px 16px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background: white;
+  }
+  
+  .form-control:focus, .form-select:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    outline: none;
+  }
+  
+  .form-control:hover, .form-select:hover {
+    border-color: #d1d5db;
+  }
+  
+  .btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    border-radius: 12px;
+    padding: 12px 24px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  }
+  
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+  }
+  
+  .btn-secondary {
+    background: #f3f4f6;
+    border: 2px solid #e5e7eb;
+    color: #6b7280;
+    border-radius: 12px;
+    padding: 12px 24px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+  }
+  
+  .btn-secondary:hover {
+    background: #e5e7eb;
+    border-color: #d1d5db;
+    color: #374151;
+  }
+  
+  .modal-footer {
+    background: #f8fafc;
+    border: none;
+    padding: 20px 30px;
+    border-radius: 0 0 20px 20px;
+  }
+  
+  /* Dark mode dla modali */
+  body.dark-mode .modal-content {
+    background: #1f2937;
+    color: #f9fafb;
+  }
+  
+  body.dark-mode .modal-body {
+    background: #111827;
+  }
+  
+  body.dark-mode .modal-footer {
+    background: #111827;
+  }
+  
+  body.dark-mode .form-control, 
+  body.dark-mode .form-select {
+    background: #374151;
+    border-color: #4b5563;
+    color: #f9fafb;
+  }
+  
+  body.dark-mode .form-control:focus, 
+  body.dark-mode .form-select:focus {
+    border-color: #667eea;
+    background: #4b5563;
+  }
+  
+  body.dark-mode .form-label {
+    color: #d1d5db;
+  }
+  
+  /* Style dla przycisków ikon */
+  .icon-btn {
+    min-width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+    border-radius: 8px;
+  }
+  
+  .icon-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+  
+  .icon-btn.active, .icon-btn:focus {
+    border-color: #667eea !important;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    color: white !important;
+  }
+  
+  .icon-category {
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    padding: 15px;
+    background: #f8f9fa;
+    transition: all 0.3s ease;
+  }
+  
+  .icon-category:hover {
+    background: #e9ecef;
+    border-color: #dee2e6;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  }
+  
+  #selected-icon-display {
+    background: #f8f9fa;
+    border: 2px solid #dee2e6 !important;
+    transition: border-color 0.2s ease;
+    border-radius: 12px;
+  }
+  
+  #selected-icon-display:hover {
+    border-color: #667eea !important;
+    background: #f0f4ff;
+  }
+  
+  /* Dark mode dla ikon */
+  body.dark-mode .icon-category {
+    background: #374151;
+    border-color: #4b5563;
+  }
+  
+  body.dark-mode .icon-category:hover {
+    background: #4b5563;
+    border-color: #6b7280;
+  }
+  
+  body.dark-mode #selected-icon-display {
+    background: #374151;
+    border-color: #4b5563 !important;
+  }
+  
+  body.dark-mode #selected-icon-display:hover {
+    border-color: #667eea !important;
+    background: #1f2937;
+  }
+  
+  /* Animacje dla modali */
+  .modal.fade .modal-dialog {
+    transform: scale(0.8) translateY(-50px);
+    transition: all 0.3s ease;
+  }
+  
+  .modal.show .modal-dialog {
+    transform: scale(1) translateY(0);
+  }
+  
+  .modal-backdrop {
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+  }
+  
+  /* Responsywność modali */
+  @media (max-width: 768px) {
+    .modal-dialog {
+      margin: 10px;
+    }
+    
+    .modal-header {
+      padding: 20px;
+    }
+    
+    .modal-body {
+      padding: 20px;
+    }
+    
+    .modal-footer {
+      padding: 15px 20px;
+    }
+    
+    .modal-title {
+      font-size: 1.3rem;
+    }
+  }
+  
   .event-date {
     font-size: 1.1rem;
     color: #6b7280;
@@ -759,7 +1066,114 @@
   </div>
 </div>
 
+<!-- Modal do wyboru ikon -->
+<div class="modal fade" id="iconPickerModal" tabindex="-1" aria-labelledby="iconPickerModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="iconPickerModalLabel">Wybierz ikonę dla wydarzenia</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Zamknij"></button>
+      </div>
+      <div class="modal-body">
+        <div id="icon-picker-container">
+          <!-- Kategoria: Podstawowe -->
+          <div class="icon-category mb-3">
+            <h6 class="text-muted fw-bold mb-2">Podstawowe:</h6>
+            <div class="d-flex flex-wrap gap-2">
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-calendar-check" data-label="Kalendarz (domyślna)"><i class="fa-solid fa-calendar-check"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-calendar-plus" data-label="Dodaj"><i class="fa-solid fa-calendar-plus"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-calendar-minus" data-label="Usuń"><i class="fa-solid fa-calendar-minus"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-calendar-day" data-label="Dzień"><i class="fa-solid fa-calendar-day"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-calendar-week" data-label="Tydzień"><i class="fa-solid fa-calendar-week"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-calendar-alt" data-label="Kalendarz"><i class="fa-solid fa-calendar-alt"></i></button>
+            </div>
+          </div>
+          
+          <!-- Kategoria: Urodziny i święta -->
+          <div class="icon-category mb-3">
+            <h6 class="text-muted fw-bold mb-2">Urodziny i święta:</h6>
+            <div class="d-flex flex-wrap gap-2">
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-cake-candles" data-label="Tort urodzinowy"><i class="fa-solid fa-cake-candles"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-gift" data-label="Prezent"><i class="fa-solid fa-gift"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-star" data-label="Gwiazdka"><i class="fa-solid fa-star"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-heart" data-label="Serce"><i class="fa-solid fa-heart"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-bell" data-label="Dzwonek"><i class="fa-solid fa-bell"></i></button>
+            </div>
+          </div>
+          
+          <!-- Kategoria: Praca i edukacja -->
+          <div class="icon-category mb-3">
+            <h6 class="text-muted fw-bold mb-2">Praca i edukacja:</h6>
+            <div class="d-flex flex-wrap gap-2">
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-briefcase" data-label="Praca"><i class="fa-solid fa-briefcase"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-graduation-cap" data-label="Edukacja"><i class="fa-solid fa-graduation-cap"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-laptop" data-label="Komputer"><i class="fa-solid fa-laptop"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-book" data-label="Książka"><i class="fa-solid fa-book"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-handshake" data-label="Spotkanie"><i class="fa-solid fa-handshake"></i></button>
+            </div>
+          </div>
+          
+          <!-- Kategoria: Podróże i transport -->
+          <div class="icon-category mb-3">
+            <h6 class="text-muted fw-bold mb-2">Podróże i transport:</h6>
+            <div class="d-flex flex-wrap gap-2">
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-plane" data-label="Podróż"><i class="fa-solid fa-plane"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-car" data-label="Samochód"><i class="fa-solid fa-car"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-bicycle" data-label="Rower"><i class="fa-solid fa-bicycle"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-ticket-alt" data-label="Bilet"><i class="fa-solid fa-ticket-alt"></i></button>
+            </div>
+          </div>
+          
+          <!-- Kategoria: Zdrowie i sport -->
+          <div class="icon-category mb-3">
+            <h6 class="text-muted fw-bold mb-2">Zdrowie i sport:</h6>
+            <div class="d-flex flex-wrap gap-2">
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-stethoscope" data-label="Zdrowie"><i class="fa-solid fa-stethoscope"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-dumbbell" data-label="Sport"><i class="fa-solid fa-dumbbell"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-running" data-label="Bieganie"><i class="fa-solid fa-running"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-swimming-pool" data-label="Basen"><i class="fa-solid fa-swimming-pool"></i></button>
+            </div>
+          </div>
+          
+          <!-- Kategoria: Dom i życie -->
+          <div class="icon-category mb-3">
+            <h6 class="text-muted fw-bold mb-2">Dom i życie:</h6>
+            <div class="d-flex flex-wrap gap-2">
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-home" data-label="Dom"><i class="fa-solid fa-home"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-utensils" data-label="Jedzenie"><i class="fa-solid fa-utensils"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-coffee" data-label="Kawa"><i class="fa-solid fa-coffee"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-baby" data-label="Dziecko"><i class="fa-solid fa-baby"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-dog" data-label="Pies"><i class="fa-solid fa-dog"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-cat" data-label="Kot"><i class="fa-solid fa-cat"></i></button>
+            </div>
+          </div>
+          
+          <!-- Kategoria: Rozrywka -->
+          <div class="icon-category mb-3">
+            <h6 class="text-muted fw-bold mb-2">Rozrywka:</h6>
+            <div class="d-flex flex-wrap gap-2">
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-music" data-label="Muzyka"><i class="fa-solid fa-music"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-film" data-label="Film"><i class="fa-solid fa-film"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-gamepad" data-label="Gry"><i class="fa-solid fa-gamepad"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-palette" data-label="Sztuka"><i class="fa-solid fa-palette"></i></button>
+              <button type="button" class="icon-btn btn btn-outline-secondary" data-value="fa-guitar" data-label="Gitara"><i class="fa-solid fa-guitar"></i></button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Anuluj</button>
+        <button type="button" class="btn btn-primary" onclick="confirmIconSelection()">Wybierz</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
+// Ikona picker - nowy system z modalem
+let selectedIconValue = 'fa-calendar-check';
+let selectedIconLabel = 'Kalendarz (domyślna)';
+
 // Funkcje do obsługi wydarzeń
 function navigateMonth(currentMonth, direction) {
   const [year, month] = currentMonth.split('-').map(Number);
@@ -865,6 +1279,11 @@ function openAddEventModal() {
         initEventFormJS(); 
       }
       
+      // Re-inicjalizuj obsługę ikon po załadowaniu formularza
+      setTimeout(() => {
+        reinitializeIconPicker();
+      }, 100);
+      
       // Obsługa wysyłki formularza przez AJAX
       const form = modalBody.querySelector('form');
       if (form) {
@@ -930,5 +1349,83 @@ document.addEventListener('DOMContentLoaded', function() {
     observer.observe(event);
   });
 });
+
+// Funkcje obsługi ikon
+function openIconPickerModal() {
+  const modalElement = document.getElementById('iconPickerModal');
+  if (!modalElement) {
+    return;
+  }
+  
+  const modal = new bootstrap.Modal(modalElement);
+  
+  // Zaznacz aktualnie wybraną ikonę
+  const iconBtns = document.querySelectorAll('#iconPickerModal .icon-btn');
+  iconBtns.forEach(btn => {
+    btn.classList.remove('active');
+    if (btn.dataset.value === selectedIconValue) {
+      btn.classList.add('active');
+    }
+  });
+  
+  // Dodaj event listenery do przycisków ikon
+  iconBtns.forEach(btn => {
+    btn.onclick = function() {
+      // Usuń aktywną klasę ze wszystkich przycisków
+      iconBtns.forEach(b => b.classList.remove('active'));
+      // Dodaj aktywną klasę do klikniętego przycisku
+      this.classList.add('active');
+      
+      // Zaktualizuj wybrane wartości
+      selectedIconValue = this.dataset.value;
+      selectedIconLabel = this.dataset.label;
+    };
+  });
+  
+  modal.show();
+}
+
+function confirmIconSelection() {
+  // Zaktualizuj ukryte pole formularza
+  const iconInput = document.getElementById('id_icon');
+  if (iconInput) {
+    iconInput.value = selectedIconValue;
+  }
+  
+  // Zaktualizuj wyświetlanie
+  updateIconDisplay();
+  
+  // Zamknij modal
+  const modalElement = document.getElementById('iconPickerModal');
+  const modal = bootstrap.Modal.getInstance(modalElement);
+  if (modal) {
+    modal.hide();
+  }
+}
+
+function updateIconDisplay() {
+  const iconPreview = document.getElementById('selected-icon-preview');
+  const iconText = document.getElementById('selected-icon-text');
+  
+  if (iconPreview && iconText) {
+    iconPreview.className = `fa-solid ${selectedIconValue} fa-lg text-primary`;
+    iconText.textContent = selectedIconLabel;
+  }
+}
+
+// Re-inicjalizuj obsługę ikon po załadowaniu formularza przez AJAX
+function reinitializeIconPicker() {
+  // Znajdź przycisk wyboru ikony w załadowanym formularzu
+  const iconPickerBtn = document.querySelector('#addEventModalBody button[onclick="openIconPickerModal()"]');
+  if (iconPickerBtn) {
+    // Usuń stary event listener
+    iconPickerBtn.onclick = null;
+    // Dodaj nowy event listener
+    iconPickerBtn.onclick = openIconPickerModal;
+  }
+  
+  // Zaktualizuj wyświetlanie ikony
+  updateIconDisplay();
+}
 </script>
 {% endblock %}
