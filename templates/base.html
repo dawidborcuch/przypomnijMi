@@ -59,7 +59,10 @@
       <ul class="navbar-nav ms-auto">
         {% if user.is_authenticated %}
         <li class="nav-item">
-          <a class="nav-link" href="/accounts/logout/"><i class="bi bi-box-arrow-right"></i> Wyloguj</a>
+          <form method="post" action="/accounts/logout/" style="display: inline;">
+            {% csrf_token %}
+            <button type="submit" class="nav-link btn btn-link border-0 p-0" style="background: none; color: inherit;"><i class="bi bi-box-arrow-right"></i> Wyloguj</button>
+          </form>
         </li>
         {% else %}
         <li class="nav-item">

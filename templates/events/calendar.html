@@ -16,13 +16,16 @@
     margin: 0 auto;
     padding: 0 16px;
   }
+  .table-responsive {
+    overflow: visible !important;
+  }
   .calendar-table {
     width: 100%;
     min-width: 900px;
     font-size: 1.1rem;
     background: #fff;
     border-radius: 16px;
-    overflow: hidden;
+    overflow: visible;
     box-shadow: 0 2px 16px rgba(33,150,243,0.07);
   }
   .calendar-table th {
@@ -35,7 +38,7 @@
   .calendar-day {
     background: #fff;
     border: 1px solid #dee2e6;
-    overflow: hidden;
+    overflow: visible;
     position: relative;
     padding: 0;
     height: 120px;
@@ -55,6 +58,7 @@
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;
+    overflow: visible;
   }
   .calendar-day:hover .calendar-content {
     background: #e3f2fd;
@@ -92,21 +96,65 @@
   }
   .event-icons {
     display: flex;
-    flex-wrap: wrap;
+    flex-direction: column;
     gap: 2px;
-    justify-content: center;
+    justify-content: flex-start;
     margin-top: 4px;
+    max-height: 80px;
+    overflow-y: auto;
+    overflow-x: visible;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE/Edge */
+    position: relative;
   }
-  .event-icon {
-    font-size: 1.2rem;
-    color: #1976d2;
-    padding: 2px;
-    border-radius: 4px;
-    background: rgba(25, 118, 210, 0.1);
+  .event-icons::-webkit-scrollbar {
+    display: none; /* Chrome/Safari */
   }
-  .event-icon:hover {
-    background: rgba(25, 118, 210, 0.2);
-    transform: scale(1.1);
+  .event-card {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 6px;
+    border-radius: 8px;
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #333;
+    cursor: grab;
+    transition: all 0.2s ease;
+    max-width: 100%;
+    min-width: 0;
+    flex-shrink: 1;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+  .event-card:hover {
+    transform: translateY(-1px) scale(1.02);
+    box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+    z-index: 100;
+    position: relative;
+  }
+  .event-card:active {
+    cursor: grabbing;
+    transform: scale(0.98);
+  }
+  .event-card-icon {
+    font-size: 0.9rem;
+    flex-shrink: 0;
+  }
+  .event-card-text {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: calc(100% - 15px);
+  }
+  .event-card-recurring {
+    color: #ff9800;
+    font-size: 0.7rem;
   }
   /* Kolory kategorii dla ikon */
   .cat-urodziny { color: var(--cat-urodziny) !important; }
@@ -115,6 +163,69 @@
   .cat-przeglad { color: var(--cat-przeglad) !important; }
   .cat-ubezpieczenie { color: var(--cat-ubezpieczenie) !important; }
   .cat-inne { color: var(--cat-inne) !important; }
+  
+  /* Kolory tła dla kart wydarzeń */
+  .event-card.urodziny { 
+    background: linear-gradient(135deg, #fce4ec 0%, #f8bbd9 100%);
+    border-color: var(--cat-urodziny);
+    color: #ad1457;
+  }
+  .event-card.imieniny { 
+    background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%);
+    border-color: var(--cat-imieniny);
+    color: #7b1fa2;
+  }
+  .event-card.rocznice { 
+    background: linear-gradient(135deg, #fff3e0 0%, #ffcc02 100%);
+    border-color: var(--cat-rocznice);
+    color: #f57c00;
+  }
+  .event-card.przeglad { 
+    background: linear-gradient(135deg, #e1f5fe 0%, #b3e5fc 100%);
+    border-color: var(--cat-przeglad);
+    color: #0277bd;
+  }
+  .event-card.ubezpieczenie { 
+    background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%);
+    border-color: var(--cat-ubezpieczenie);
+    color: #388e3c;
+  }
+  .event-card.inne { 
+    background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%);
+    border-color: var(--cat-inne);
+    color: #424242;
+  }
+  
+  /* Tryb ciemny dla kart wydarzeń */
+  body.dark-mode .event-card {
+    background: #2d3748;
+    border-color: #4a5568;
+    color: #e2e8f0;
+  }
+  body.dark-mode .event-card.urodziny { 
+    background: linear-gradient(135deg, #4a1a2e 0%, #6b2c3e 100%);
+    color: #f8bbd9;
+  }
+  body.dark-mode .event-card.imieniny { 
+    background: linear-gradient(135deg, #3d1a4a 0%, #5a2c6b 100%);
+    color: #e1bee7;
+  }
+  body.dark-mode .event-card.rocznice { 
+    background: linear-gradient(135deg, #4a3d1a 0%, #6b5a2c 100%);
+    color: #ffcc02;
+  }
+  body.dark-mode .event-card.przeglad { 
+    background: linear-gradient(135deg, #1a3d4a 0%, #2c5a6b 100%);
+    color: #b3e5fc;
+  }
+  body.dark-mode .event-card.ubezpieczenie { 
+    background: linear-gradient(135deg, #1a4a1a 0%, #2c6b2c 100%);
+    color: #c8e6c9;
+  }
+  body.dark-mode .event-card.inne { 
+    background: linear-gradient(135deg, #3d3d3d 0%, #5a5a5a 100%);
+    color: #e0e0e0;
+  }
   .badge-cat { border-radius: 999px; padding: 2px 8px; font-weight: 600; }
   .badge-cat-urodziny { background: color-mix(in srgb, var(--cat-urodziny) 18%, white); color: var(--cat-urodziny); }
   .badge-cat-imieniny { background: color-mix(in srgb, var(--cat-imieniny) 18%, white); color: var(--cat-imieniny); }
@@ -200,7 +311,7 @@
     <h4 class="mb-0 mx-3">{{ month_name }} {{ year }}</h4>
     <a href="?month={{ next_month }}&year={{ next_year }}" class="calendar-nav" title="Następny miesiąc"><i class="bi bi-chevron-right"></i></a>
   </div>
-  <div class="table-responsive">
+  <div class="table-responsive" style="overflow: visible;">
     <div id="upcomingPanel" class="mb-3" style="max-width:1400px;margin:0 auto;">
       <div class="card">
         <div class="card-body d-flex align-items-center justify-content-between">
@@ -238,7 +349,7 @@
             {% if day %}
               {% with events=events_by_day|get_item:day day_str=day|date:'Y-m-d' %}
               <td class="calendar-day{% if day == today %} calendar-today{% endif %} {% if forloop.counter >= 6 %}calendar-weekend{% endif %}"
-                  style="word-break:break-word; cursor:pointer; overflow:hidden; position:relative; padding:0; width:13.5vw; min-width:120px; max-width:180px; box-sizing:border-box;" 
+                  style="word-break:break-word; cursor:pointer; overflow:visible; position:relative; padding:0; width:13.5vw; min-width:120px; max-width:180px; box-sizing:border-box;" 
                   onclick="handleDayClick(event, '{{ day_str }}', {{ events|length|yesno:'true,false' }})"
                   ondragover="event.preventDefault()" ondrop="handleDrop(event, '{{ day_str }}')">
                 <div class="calendar-content">
@@ -246,8 +357,15 @@
                   {% if events %}
                     <div class="event-icons">
                       {% for event in events %}
-                        <i class="fa-solid {% if event.icon %}{{ event.icon }}{% else %}fa-calendar-check{% endif %} event-icon cat-{{ event.category }}" title="{{ event.get_category_display }}{% if event.category == 'inne' %} ({{ event.custom_category }}){% endif %}"
-                           draggable="true" ondragstart="handleDragStart(event, {{ event.id }})"></i>
+                        <div class="event-card {{ event.category }}" 
+                             title="{{ event.get_category_display }}{% if event.category == 'inne' %} ({{ event.custom_category }}){% endif %}"
+                             draggable="true" ondragstart="handleDragStart(event, {{ event.id }})">
+                          <i class="fa-solid {% if event.icon %}{{ event.icon }}{% else %}fa-calendar-check{% endif %} event-card-icon cat-{{ event.category }}"></i>
+                          <span class="event-card-text">{{ event.description|truncatechars:25 }}</span>
+                          {% if event.is_recurring %}
+                            <i class="fa-solid fa-repeat event-card-recurring" title="Wydarzenie cykliczne"></i>
+                          {% endif %}
+                        </div>
                       {% endfor %}
                     </div>
                     {% if events|length > 1 %}
